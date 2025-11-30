@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bionic Race - لعبة الجري HTML5</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(180deg, #87CEEB 0%, #228B22 100%);
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            z-index: 10;
+        }
+        #coins {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            z-index: 10;
+        }
+        #startButton {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+        .controlBtn {
+            width: 60px;
+            height: 60px;
+            background: rgba(0,0,0,0.5);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        #store, #coinCharging, #leaderboard, #settings, #friends, #achievements, #redeem {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 20;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+        .navBtn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .navBtn.active {
+            color: #4CAF50;
+        }
+        .storeItem, .coinPack {
+            background: rgba(255,255,255,0.1);
+            margin: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .achievement {
+            background: rgba(255,255,255,0.1);
+            margin: 10px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .progressBar {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progressFill {
+            height: 100%;
+            background: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="score">النتيجة: 0</div>
+        <div id="coins">العملات: 0</div>
+        <button id="startButton">ابدأ اللعبة</button>
+        <div id="controls">
+            <button class="controlBtn" id="leftBtn">←</button>
+            <button class="controlBtn" id="upBtn">↑</button>
+            <button class="controlBtn" id="downBtn">↓</button>
+            <button class="controlBtn" id="rightBtn">→</button>
+        </div>
+        <div id="gameOver">
+            <h2>انتهت اللعبة</h2>
+            <p id="finalScore">النتيجة النهائية: 0</p>
+            <p id="finalCoins">العملات المجمعة: 0</p>
+            <button id="restartBtn">إعادة البدء</button>
+        </div>
+    </div>
+
+    <!-- Store Screen -->
+    <div id="store">
+        <h1>المتجر</h1>
+        <div class="storeItem"><span>درع واقي</span><span>500 عملة</span><button>شراء</button></div>
+        <div class="storeItem"><span>مغناطيس</span><span>300 عملة</span><button>شراء</button></div>
+        <div class="storeItem"><span>سرعة مضاعفة</span><span>400 عملة</span><button>شراء</button></div>
+        <!-- Add more items -->
+    </div>
+
+    <!-- Coin Charging Screen -->
+    <div id="coinCharging">
+        <h1>شحن العملات</h1>
+        <div class="coinPack"><span>1000 عملة</span><span>\$0.99</span><button>شراء</button></div>
+        <div class="coinPack"><span>5500 عملة</span><span>\$4.99</span><button>شراء</button></div>
+        <div class="coinPack"><span>12000 عملة</span><span>\$9.99</span><button>شراء</button></div>
+        <div class="coinPack"><span>30000 عملة</span><span>\$19.99</span><button>شراء</button></div>
+        <div class="coinPack"><span>80000 عملة</span><span>\$49.99</span><button>شراء</button></div>
+        <div class="coinPack"><span>200000 عملة</span><span>\$99.99</span><button>شراء</button></div>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="leaderboard">
+        <h1>لوحة الصدارة العالمية</h1>
+        <div>1. لاعب1 - 100000</div>
+        <div>2. لاعب2 - 95000</div>
+        <!-- Add more -->
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings">
+        <h1>الإعدادات</h1>
+        <label><input type="checkbox" id="soundEffects"> مؤثرات صوتية</label><br>
+        <label><input type="checkbox" id="music" checked> موسيقى</label><br>
+        <label>مستوى الصوت: <input type="range" id="volume" min="0" max="1" step="0.1" value="0.5"></label><br>
+        <label>السمة: <select id="theme"><option>داكن</option><option>فاتح</option></select></label>
+    </div>
+
+    <!-- Friends Screen -->
+    <div id="friends">
+        <h1>الأصدقاء</h1>
+        <h2>قائمة الأصدقاء</h2>
+        <div>صديق1 - متصل</div>
+        <!-- Add more -->
+        <h2>طلبات الصداقة</h2>
+        <div>لاعب50 <button>قبول</button><button>رفض</button></div>
+    </div>
+
+    <!-- Achievements Screen -->
+    <div id="achievements">
+        <h1>الإنجازات</h1>
+        <div class="achievement">
+            <h3>الجري الأول</h3>
+            <p>أكمل لعبتك الأولى.</p>
+            <div class="progressBar"><div class="progressFill" style="width: 100%;"></div></div>
+        </div>
+        <div class="achievement">
+            <h3>جامع العملات</h3>
+            <p>اجمع 1000 عملة.</p>
+            <div class="progressBar"><div class="progressFill" style="width: 35%;"></div></div>
+        </div>
+        <!-- Add more -->
+    </div>
+
+    <!-- Redeem Screen -->
+    <div id="redeem">
+        <h1>استرداد العملات</h1>
+        <p>يمكنك استرداد عملاتك هنا. هذا محاكاة ولا يتضمن أموال حقيقية.</p>
+        <input type="number" placeholder="كمية العملات للاسترداد"><br><br>
+        <input type="email" placeholder="بريد PayPal (محاكاة)"><br><br>
+        <button id="submitRedeem">إرسال الطلب</button>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav">
+        <button class="navBtn active" data-screen="game">اللعبة</button>
+        <button class="navBtn" data-screen="store">المتجر</button>
+        <button class="navBtn" data-screen="coinCharging">العملات</button>
+        <button class="navBtn" data-screen="leaderboard">الصدارة</button>
+        <button class="navBtn" data-screen="settings">الإعدادات</button>
+        <button class="navBtn" data-screen="friends">الأصدقاء</button>
+        <button class="navBtn" data-screen="achievements">الإنجازات</button>
+        <button class="navBtn" data-screen="redeem">الاسترداد</button>
+    </div>
+
+    <script>
+        // Game variables
+        let canvas, ctx, player, obstacles, coins, score, coinCount, gameRunning, gameLoop;
+        const gravity = 0.5;
+        const jumpStrength = -12;
+        const moveSpeed = 5;
+
+        // Initialize game
+        function initGame() {
+            canvas = document.createElement('canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 100; // Leave space for controls
+            canvas.style.position = 'absolute';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            document.getElementById('gameContainer').appendChild(canvas);
+            ctx = canvas.getContext('2d');
+
+            player = {
+                x: canvas.width / 2,
+                y: canvas.height - 50,
+                width: 30,
+                height: 30,
+                velocityY: 0,
+                onGround: true
+            };
+
+            obstacles = [];
+            coins = [];
+            score = 0;
+            coinCount = 0;
+            gameRunning = false;
+        }
+
+        // Start game
+        document.getElementById('startButton').addEventListener('click', () => {
+            if (!gameRunning) {
+                gameRunning = true;
+                document.getElementById('startButton').style.display = 'none';
+                gameLoop = setInterval(updateGame, 16);
+            }
+        });
+
+        // Restart game
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            document.getElementById('gameOver').style.display = 'none';
+            initGame();
+            document.getElementById('startButton').style.display = 'block';
+        });
+
+        // Update game
+        function updateGame() {
+            if (!gameRunning) return;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#228B22');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Update player
+            player.velocityY += gravity;
+            player.y += player.velocityY;
+
+            if (player.y >= canvas.height - 50) {
+                player.y = canvas.height - 50;
+                player.velocityY = 0;
+                player.onGround = true;
+            }
+
+            // Draw player
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+
+            // Add obstacles
+            if (Math.random() < 0.01) {
+                obstacles.push({
+                    x: canvas.width,
+                    y: canvas.height - 50,
+                    width: 20,
+                    height: 40
+                });
+            }
+
+            // Add coins
+            if (Math.random() < 0.005) {
+                coins.push({
+                    x: canvas.width,
+                    y: Math.random() * (canvas.height - 100) + 50,
+                    width: 20,
+                    height: 20
+                });
+            }
+
+            // Update and draw obstacles
+            obstacles.forEach((obs, index) => {
+                obs.x -= moveSpeed;
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(obs.x - obs.width / 2, obs.y - obs.height / 2, obs.width, obs.height);
+
+                // Collision with player
+                if (player.x < obs.x + obs.width / 2 && player.x > obs.x - obs.width / 2 &&
+                    player.y < obs.y + obs.height / 2 && player.y > obs.y - obs.height / 2) {
+                    endGame();
+                }
+
+                if (obs.x < -obs.width) {
+                    obstacles.splice(index, 1);
+                }
+            });
+
+            // Update and draw coins
+            coins.forEach((coin, index) => {
+                coin.x -= moveSpeed;
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(coin.x, coin.y, coin.width / 2, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Collision with player
+                const dist = Math.sqrt((player.x - coin.x) ** 2 + (player.y - coin.y) ** 2);
+                if (dist < (player.width / 2 + coin.width / 2)) {
+                    coinCount++;
+                    coins.splice(index, 1);
+                    document.getElementById('coins').textContent = `العملات: ${coinCount}`;
+                }
+
+                if (coin.x < -coin.width) {
+                    coins.splice(index, 1);
+                }
+            });
+
+            score++;
+            document.getElementById('score').textContent = `النتيجة: ${score}`;
+        }
+
+        // End game
+        function endGame() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            document.getElementById('finalScore').textContent = `النتيجة النهائية: ${score}`;
+            document.getElementById('finalCoins').textContent = `العملات المجمعة: ${coinCount}`;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        // Controls
+        document.getElementById('leftBtn').addEventListener('click', () => {
+            if (gameRunning) player.x -= 10;
+        });
+        document.getElementById('rightBtn').addEventListener('click', () => {
+            if (gameRunning) player.x += 10;
+        });
+        document.getElementById('upBtn').addEventListener('click', () => {
+            if (gameRunning && player.onGround) {
+                player.velocityY = jumpStrength;
+                player.onGround = false;
+            }
+        });
+        // Down button can be for crouch, but not implemented
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            switch (e.key) {
+                case 'ArrowLeft':
+                    player.x -= 10;
+                    break;
+                case 'ArrowRight':
+                    player.x += 10;
+                    break;
+                case 'ArrowUp':
+                    if (player.onGround) {
+                        player.velocityY = jumpStrength;
+                        player.onGround = false;
+                    }
+                    break;
+            }
+        });
+
+        // Navigation
+        document.querySelectorAll('.navBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.navBtn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const screen = btn.dataset.screen;
+                document.querySelectorAll('[id]').forEach(el => {
+                    if (el.id.startsWith('game') || ['store', 'coinCharging', 'leaderboard', 'settings', 'friends', 'achievements', 'redeem'].includes(el.id)) {
+                        el.style.display = el.id === screen + 'Container' || el.id === screen ? 'block' : 'none';
+                    }
+                });
+                if (screen === 'game') {
+                    document.getElementById('gameContainer').style.display = 'block';
+                }
+            });
+        });
+
+        // Store purchases
+        document.querySelectorAll('#store .storeItem button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                alert('شراء وهمي ناجح!');
+            });
+        });
+
+        // Coin purchases
+        document.querySelectorAll('#coinCharging .coinPack button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                alert('دفع حقيقي غير متاح. هذا شراء وهمي.');
+            });
+        });
+
+        // Redeem submit
+        document.getElementById('submitRedeem').addEventListener('click', () => {
+            alert('تم إرسال طلب الاسترداد! سيتم معالجة الدفع خلال 24 ساعة (محاكاة).');
+        });
+
+        // Initialize on load
+        window.addEventListener('load', initGame);
+        window.addEventListener('resize', () => {
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight - 100;
+            }
+        });
+    </script>
+</body>
+</html>
